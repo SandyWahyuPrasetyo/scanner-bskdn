@@ -9,17 +9,17 @@
 
 <style>
 body{
-font-family:Arial;
-max-width:700px;
+font-family:Arial,sans-serif;
+max-width:720px;
 margin:auto;
 padding:20px;
-text-align:center;
 background:#f4f7fa;
+text-align:center;
 }
 
 h1{
 color:#003366;
-font-size:28px;
+margin-bottom:20px;
 }
 
 #reader{
@@ -31,16 +31,21 @@ input,button{
 width:100%;
 padding:12px;
 margin-top:10px;
-box-sizing:border-box;
 font-size:16px;
+box-sizing:border-box;
+border-radius:8px;
+}
+
+input{
+border:1px solid #ccc;
 }
 
 button{
+border:none;
 background:#0066cc;
 color:white;
-border:none;
+font-weight:bold;
 cursor:pointer;
-border-radius:8px;
 }
 
 button:disabled{
@@ -49,10 +54,16 @@ cursor:not-allowed;
 }
 
 #hasil{
-margin-top:20px;
+margin-top:18px;
 font-size:22px;
 font-weight:bold;
 min-height:40px;
+}
+
+.small{
+font-size:13px;
+color:#666;
+margin-top:8px;
 }
 </style>
 </head>
@@ -62,26 +73,23 @@ min-height:40px;
 
 <div id="reader"></div>
 
-<input type="file" accept="image/*" id="file">
+<input type="file" id="file" accept="image/*">
 
-<input type="text" id="manual" placeholder="Input ID Peserta">
+<input type="text" id="manual" placeholder="Input ID Peserta / QR">
 
 <button id="btnManual" onclick="manualCheckin()">CHECK-IN MANUAL</button>
 
 <div id="hasil"></div>
 
-<form id="kirimForm"
-method="POST"
-target="hiddenFrame"
-action="https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec">
-
-<input type="hidden" name="kode" id="kodeField">
-
-</form>
+<div class="small">
+Mode aktif: Kamera • Upload QR • Manual
+</div>
 
 <iframe id="hiddenFrame" style="display:none;"></iframe>
 
 <script>
+
+const WEBAPP = "https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec";
 
 let sedangProses = false;
 let lastScan = "";
@@ -91,36 +99,54 @@ new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").p
 }
 
 function tampil(msg,sukses=false){
-const h=document.getElementById("hasil");
-h.innerHTML=msg;
-h.style.color=sukses ? "green" : "red";
+const h = document.getElementById("hasil");
+h.innerHTML = msg;
+h.style.color = sukses ? "green" : "red";
 if(sukses) bunyi();
 }
 
-function resetStatus(){
+function resetProses(){
 setTimeout(()=>{
+sedangProses = false;
 tampil("");
-sedangProses=false;
 },3000);
 }
 
 function kirimKode(kode){
 
 if(!kode) return;
+kode = kode.trim();
 
-tampil("⏳ Diproses...", true);
+if(kode=="") return;
 
-const url =
-"https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec?kode="
-+ encodeURIComponent(kode);
+if(sedangProses) return;
 
-document.getElementById("hiddenFrame").src = url;
+if(lastScan === kode){
+return;
+}
+
+sedangProses = true;
+lastScan = kode;
+
+document.getElementById("btnManual").disabled = true;
+
+tampil("⏳ Diproses...",true);
+
+const url = WEBAPP + "?kode=" + encodeURIComponent(kode);
+
+document.getElementById("hiddenFrame").src = url + "&t=" + new Date().getTime();
 
 setTimeout(()=>{
-tampil("✅ Diproses", true);
-},1000);
+tampil("✅ Check-in diproses",true);
+document.getElementById("manual").value = "";
+document.getElementById("manual").focus();
+document.getElementById("btnManual").disabled = false;
+resetProses();
+},1200);
 
-document.getElementById("manual").value="";
+setTimeout(()=>{
+lastScan = "";
+},4000);
 
 }
 
@@ -137,7 +163,8 @@ new Html5QrcodeScanner(
 "reader",
 {
 fps:10,
-qrbox:250
+qrbox:250,
+rememberLastUsedCamera:true
 }
 ).render(onScanSuccess);
 
@@ -152,11 +179,17 @@ kirimKode(decodedText);
 })
 .catch(()=>{
 tampil("❌ QR gambar gagal dibaca");
-resetStatus();
+resetProses();
 });
 
 this.value="";
 
+});
+
+document.getElementById("manual").addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+manualCheckin();
+}
 });
 
 </script>
