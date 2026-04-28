@@ -115,38 +115,27 @@ tampil("");
 function kirimKode(kode){
 
 if(!kode) return;
-kode = kode.trim();
 
+kode = kode.trim();
 if(kode=="") return;
 
-if(sedangProses) return;
+tampil("⏳ Diproses...", true);
 
-if(lastScan === kode){
-return;
-}
+const url =
+"https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec?kode="
++ encodeURIComponent(kode);
 
-sedangProses = true;
-lastScan = kode;
-
-document.getElementById("btnManual").disabled = true;
-
-tampil("⏳ Diproses...",true);
-
-const url = WEBAPP + "?kode=" + encodeURIComponent(kode);
-
-document.getElementById("hiddenFrame").src = url + "&t=" + new Date().getTime();
+window.open(url,"_blank","width=300,height=200");
 
 setTimeout(()=>{
-tampil("✅ Check-in diproses",true);
-document.getElementById("manual").value = "";
-document.getElementById("manual").focus();
-document.getElementById("btnManual").disabled = false;
-resetProses();
-},1200);
+tampil("✅ Check-in berhasil",true);
+},1000);
 
 setTimeout(()=>{
-lastScan = "";
+tampil("");
 },4000);
+
+document.getElementById("manual").value="";
 
 }
 
