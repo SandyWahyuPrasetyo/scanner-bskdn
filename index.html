@@ -97,6 +97,14 @@ document.getElementById("kirimForm").submit();
 
 tampil("⏳ Diproses...",true);
 
+setTimeout(function(){
+tampil("✅ Check-in berhasil",true);
+},1200);
+
+setTimeout(function(){
+tampil("");
+},4000);
+
 document.getElementById("manual").value="";
 document.getElementById("manual").focus();
 
