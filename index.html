@@ -82,10 +82,7 @@ if(sukses) bunyi();
 
 function kirimKode(kode){
 
-fetch(apiUrl,{
-method:"POST",
-body:JSON.stringify({kode:kode})
-})
+fetch(apiUrl + "?kode=" + encodeURIComponent(kode))
 .then(r=>r.text())
 .then(res=>{
 tampil(res,res.includes("✅"));
