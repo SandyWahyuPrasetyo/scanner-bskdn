@@ -79,7 +79,7 @@ action="https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEf
 
 </form>
 
-<iframe name="hiddenFrame" style="display:none;"></iframe>
+<iframe id="hiddenFrame" style="display:none;"></iframe>
 
 <script>
 
@@ -104,37 +104,21 @@ sedangProses=false;
 },3000);
 }
 
-async function kirimKode(kode){
+function kirimKode(kode){
 
 if(!kode) return;
 
 tampil("⏳ Diproses...", true);
 
-try{
+const url =
+"https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec?kode="
++ encodeURIComponent(kode);
 
-const url = "https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec";
+document.getElementById("hiddenFrame").src = url;
 
-const formData = new FormData();
-formData.append("kode", kode);
-
-const res = await fetch(url,{
-method:"POST",
-body:formData
-});
-
-const text = await res.text();
-
-if(text.includes("✅") || text.includes("⚠️")){
-tampil(text,true);
-}else{
-tampil(text,false);
-}
-
-}catch(err){
-
-tampil("❌ Koneksi gagal",false);
-
-}
+setTimeout(()=>{
+tampil("✅ Diproses", true);
+},1000);
 
 document.getElementById("manual").value="";
 
