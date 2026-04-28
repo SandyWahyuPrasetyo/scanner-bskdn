@@ -104,36 +104,40 @@ sedangProses=false;
 },3000);
 }
 
-function kirimKode(kode){
+async function kirimKode(kode){
 
-kode = kode.trim();
+if(!kode) return;
 
-if(kode=="") return;
+tampil("⏳ Diproses...", true);
 
-if(sedangProses) return;
+try{
 
-if(kode == lastScan) return;
+const url = "https://script.google.com/macros/s/AKfycbxIwplhxtw_a0rq89s__PxdFSCIVQBEfHvR4amXyTTvY9-XEJmpc-pcJeALOGk_FzeKNg/exec";
 
-sedangProses = true;
-lastScan = kode;
+const formData = new FormData();
+formData.append("kode", kode);
 
-document.getElementById("kodeField").value = kode;
-document.getElementById("kirimForm").submit();
+const res = await fetch(url,{
+method:"POST",
+body:formData
+});
 
-tampil("⏳ Diproses...",true);
+const text = await res.text();
 
-setTimeout(()=>{
-tampil("✅ Check-in terkirim",true);
-},1200);
+if(text.includes("✅") || text.includes("⚠️")){
+tampil(text,true);
+}else{
+tampil(text,false);
+}
 
-resetStatus();
+}catch(err){
+
+tampil("❌ Koneksi gagal",false);
+
+}
 
 document.getElementById("manual").value="";
-document.getElementById("manual").focus();
 
-setTimeout(()=>{
-lastScan="";
-},5000);
 }
 
 function manualCheckin(){
