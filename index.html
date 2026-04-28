@@ -64,9 +64,19 @@ font-weight:bold;
 
 <div id="hasil"></div>
 
-<script>
+<!-- FORM HIDDEN POST KE APPS SCRIPT -->
+<form id="kirimForm"
+method="POST"
+target="hiddenFrame"
+action="https://script.google.com/macros/s/AKfycbwWCZVBj5WU4mxBhRM0QYvtqUrTJbhUEwruKeYEBswjnTzuPrkil_MUN8pcy3gP-FcRgQ/exec">
 
-const apiUrl = "https://script.google.com/macros/s/AKfycbwWCZVBj5WU4mxBhRM0QYvtqUrTJbhUEwruKeYEBswjnTzuPrkil_MUN8pcy3gP-FcRgQ/exec";
+<input type="hidden" name="kode" id="kodeField">
+
+</form>
+
+<iframe name="hiddenFrame" style="display:none;"></iframe>
+
+<script>
 
 function bunyi(){
 const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
@@ -82,21 +92,22 @@ if(sukses) bunyi();
 
 function kirimKode(kode){
 
-fetch(apiUrl + "?kode=" + encodeURIComponent(kode))
-.then(r=>r.text())
-.then(res=>{
-tampil(res,res.includes("✅"));
+document.getElementById("kodeField").value = kode;
+document.getElementById("kirimForm").submit();
+
+tampil("⏳ Diproses...",true);
+
 document.getElementById("manual").value="";
-})
-.catch(()=>{
-tampil("❌ Gagal koneksi");
-});
+document.getElementById("manual").focus();
 
 }
 
 function manualCheckin(){
 const kode=document.getElementById("manual").value.trim();
-if(kode!="") kirimKode(kode);
+
+if(kode!=""){
+kirimKode(kode);
+}
 }
 
 function onScanSuccess(decodedText){
