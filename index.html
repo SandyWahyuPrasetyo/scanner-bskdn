@@ -43,10 +43,16 @@ cursor:pointer;
 border-radius:8px;
 }
 
+button:disabled{
+background:#999;
+cursor:not-allowed;
+}
+
 #hasil{
 margin-top:20px;
 font-size:22px;
 font-weight:bold;
+min-height:40px;
 }
 </style>
 </head>
@@ -58,13 +64,12 @@ font-weight:bold;
 
 <input type="file" accept="image/*" id="file">
 
-<input type="text" id="manual" placeholder="Input ID / Nama / QR">
+<input type="text" id="manual" placeholder="Input ID Peserta">
 
-<button onclick="manualCheckin()">CHECK-IN MANUAL</button>
+<button id="btnManual" onclick="manualCheckin()">CHECK-IN MANUAL</button>
 
 <div id="hasil"></div>
 
-<!-- FORM HIDDEN POST KE APPS SCRIPT -->
 <form id="kirimForm"
 method="POST"
 target="hiddenFrame"
@@ -78,44 +83,62 @@ action="https://script.google.com/macros/s/AKfycbwWCZVBj5WU4mxBhRM0QYvtqUrTJbhUE
 
 <script>
 
+let sedangProses = false;
+let lastScan = "";
+
 function bunyi(){
-const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-audio.play();
+new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg").play();
 }
 
 function tampil(msg,sukses=false){
 const h=document.getElementById("hasil");
 h.innerHTML=msg;
-h.style.color=sukses ? "green":"red";
+h.style.color=sukses ? "green" : "red";
 if(sukses) bunyi();
 }
 
+function resetStatus(){
+setTimeout(()=>{
+tampil("");
+sedangProses=false;
+},3000);
+}
+
 function kirimKode(kode){
+
+kode = kode.trim();
+
+if(kode=="") return;
+
+if(sedangProses) return;
+
+if(kode == lastScan) return;
+
+sedangProses = true;
+lastScan = kode;
 
 document.getElementById("kodeField").value = kode;
 document.getElementById("kirimForm").submit();
 
 tampil("⏳ Diproses...",true);
 
-setTimeout(function(){
-tampil("✅ Check-in berhasil",true);
+setTimeout(()=>{
+tampil("✅ Check-in terkirim",true);
 },1200);
 
-setTimeout(function(){
-tampil("");
-},4000);
+resetStatus();
 
 document.getElementById("manual").value="";
 document.getElementById("manual").focus();
 
+setTimeout(()=>{
+lastScan="";
+},5000);
 }
 
 function manualCheckin(){
-const kode=document.getElementById("manual").value.trim();
-
-if(kode!=""){
+const kode = document.getElementById("manual").value;
 kirimKode(kode);
-}
 }
 
 function onScanSuccess(decodedText){
@@ -124,12 +147,15 @@ kirimKode(decodedText);
 
 new Html5QrcodeScanner(
 "reader",
-{fps:10,qrbox:250}
+{
+fps:10,
+qrbox:250
+}
 ).render(onScanSuccess);
 
 document.getElementById("file").addEventListener("change",function(e){
 
-const file=e.target.files[0];
+const file = e.target.files[0];
 if(!file) return;
 
 Html5Qrcode.scanFile(file,true)
@@ -138,9 +164,13 @@ kirimKode(decodedText);
 })
 .catch(()=>{
 tampil("❌ QR gambar gagal dibaca");
+resetStatus();
 });
 
+this.value="";
+
 });
+
 </script>
 
 </body>
